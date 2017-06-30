@@ -7,6 +7,7 @@ int main()
 {
   srand(time(0));
   int r=rand();
-  printf("Randmax=%d, random=%d", RAND_MAX, r);
+  double d=r/RAND_MAX;
+  printf("Randmax=%d, random=%d, fraction=%.3f\n", RAND_MAX, r, d);
   return 1;
 }
