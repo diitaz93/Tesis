@@ -5,9 +5,17 @@
 
 int main()
 {
+  int N=10;
   srand(time(0));
-  int r=rand();
-  double d=(double)r/(double)RAND_MAX;
-  printf("Randmax=%d, random=%d, fraction=%.3f\n", RAND_MAX, r, d);
+  double x;
+  double y;
+  int i;
+  printf("x\t y\n");
+  for(i=0;i<N;i++)
+    {
+      x=(double)rand()/(double)RAND_MAX;
+      y=(double)rand()/(double)RAND_MAX;
+      printf("%.4f\t %.4f\n",x,y);
+    }
   return 1;
 }
