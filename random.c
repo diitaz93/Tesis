@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include <time.h>
 
-int main()
+int main(int argc, char **argv)
 {
-  int N=10;
+  int N;
+  N=atoi(argv[1]);
   srand(time(0));
   double x;
   double y;
