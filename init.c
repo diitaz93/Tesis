@@ -107,8 +107,8 @@ void new_angle(double x[], double y[], double angle[], int N, double r)
 	}// end comparison
       
       at=atan( sum_sin/sum_cos );//new angle calculation
-      // values between 0 and 2pi
-      angle[i] = at;//fabs( at - 2 * M_PI * floor( at/2*M_PI ) );
+      (sum_cos<0) ? (angle[i] = at + M_PI) : (angle[i] = at);// values between 0 and 2pi 
+      //angle[i] = at;//fabs( at - 2 * M_PI * floor( at/2*M_PI ) );
     }// end update
 }// end new_angle
 
