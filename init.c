@@ -3,11 +3,13 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define STEPS 10 //Number of timesteps for temporal evolution
+
 /************************* FUNCTION PROTOTYPES ************************************/
 void initial(double x[], double y[], double angle[], int N, double L);
 void screenshot(double x[], double y[], double angle[], int N);
 void new_angle(double x[], double y[], double angle[], int N, double r);
-void new_coord(double x[], double y[], double angle[], int N, double delta_t, double v, double L);
+void new_coord(double x[], double y[], double angle[], int N, double v, double L);
 
 /******************************** MAIN ********************************************/
 int main(int argc, char **argv)
@@ -20,17 +22,21 @@ int main(int argc, char **argv)
   double angle[N]; // Angle
   double L = 1.0;// Side of square
   double v = 0.03; // Norm of velocity
-  double r = 1.0; // First neighbourg radius
-  double delta_t = 1.0; // Timestep
+  double r = 0.2; // First neighbourg radius
 
   // Initialization
   initial(x, y, angle, N, L);
   screenshot(x, y, angle, N);
 
   // Temporal evolution
-  new_coord(x, y, angle, N, delta_t, v, L);
-  new_angle(x, y, angle, N, r);
-  screenshot(x, y, angle, N);
+  int i;
+  for (i=0; i<=STEPS-1; i++)
+    {
+      new_coord(x, y, angle, N, v, L);
+      new_angle(x, y, angle, N, r);
+      screenshot(x, y, angle, N);
+      
+    }
 
   // Return
   return 0;
@@ -107,22 +113,22 @@ void new_angle(double x[], double y[], double angle[], int N, double r)
 	}// end comparison
       
       at=atan( sum_sin/sum_cos );//new angle calculation
-      // values between 0 and 2pi, fix arctan error
+      // values between 0 and 2pi, fix arctan error (EFICIENCY ALERT!!)
       (sum_cos < 0) ? (angle[i] = at + M_PI) : (angle[i] = at);
       (angle[i] < 0) ? (angle[i] += 2*M_PI) : (angle[i] = angle[i]);
     }// end update
 }// end new_angle
 
 // UPDATES POSITIONS
-void new_coord(double x[], double y[], double angle[], int N, double delta_t, double v, double L)
+void new_coord(double x[], double y[], double angle[], int N, double v, double L)
 {
   int i; // index
   double xt, yt; // Temporal variables
   for(i=0;i<=N-1;i++)
     {
       // New coordinate is old coordinate plus velocity times time
-      xt = x[i] + v*cos(angle[i])*delta_t;
-      yt = y[i] + v*sin(angle[i])*delta_t;
+      xt = x[i] + v*cos(angle[i]);
+      yt = y[i] + v*sin(angle[i]);
       
       // Periodic boundary conditions
       x[i] = fabs( xt - L*floor( xt/L ) );
