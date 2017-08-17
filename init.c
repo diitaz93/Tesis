@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define STEPS 10 //Number of timesteps (minus one due to init) for temporal evolution
+#define STEPS 19 //Number of timesteps (minus one due to init) for temporal evolution
 
 /************************* FUNCTION PROTOTYPES ************************************/
 void initial(double x[], double y[], double angle[], int N, double L);
@@ -13,7 +13,7 @@ void new_coord(double x[], double y[], double angle[], int N, double v, double L
 
 /******************************** MAIN ********************************************/
 int main(int argc, char **argv)
-/* User must type number of particles N, length of square L and noise eta */
+/* User must type number of particles N, length of square L, noise (eta), and radius of interaction */
 {
   // Variables
   int N = atoi(argv[1]);// Number of particles
@@ -21,8 +21,8 @@ int main(int argc, char **argv)
   double y[N]; // y coordinate
   double angle[N]; // Angle
   double L = atof(argv[2]);// Side of square
-  double v = 0.1; // Norm of velocity
-  double r = 0.125; // First neighbourg radius
+  double v = 0.03; // Norm of velocity
+  double r = atof(argv[4])*L; // First neighbourg radius as a fraction of L
   double eta = atof(argv[3]); //Noise coefficient
 
   // Initialization
