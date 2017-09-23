@@ -7,20 +7,18 @@ n=100;
 % N_f=40;
 % L_f=3.1;
 % r_f=0.15;
-T_f=50;
 S_f=50;
 % v_f=0.3;
 
 % Plot
 eta = linspace(0,5,n);
 v_eta = zeros(1,n);
-set(0,'DefaultFigureVisible','off') % No graphics
 
 parfor i=1:n
-    v_eta(i)=viscek(N_f, L_f, eta(i), r_f, T_f, S_f, v_f);
+    v_eta(i)=viscek(N_f, L_f, eta(i),r_f, S_f, v_f);
 end
 
-set(0,'DefaultFigureVisible','on') % Activate graphics
+
 % figure(1)
 hold on
 plot(eta,v_eta)

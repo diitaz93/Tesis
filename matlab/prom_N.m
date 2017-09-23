@@ -1,38 +1,55 @@
 clear;
 close all
 clc
-
+tic;
 %% Initialization
-N = 25; % Number of races
-M = [40, 100, 400, 4000, 10000]; % Number of particles
-m = length(M);
-L = [3.1, 5, 10, 31.6, 50]; % Sizes of cell
 % Noise
-x=100;
-eta = linspace(0,5,x);
-% Other
-r=0.25;
-T=20;
-S=20;
-v=0.3;
+eta = 0.05:0.05:5;
+x = length(eta);
+% Number of races
+% N = [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 2000,...
+%     2000, 2000, 2000, 2000, 3000, 3000, 3000, 3000, 3000, 4000,...
+%     4000, 4000, 4000, 4000, 5000, 5000, 5000, 5000, 5000, 6000,...
+%     6000, 6000, 6000, 7000, 7000, 7000, 7000, 8000,...
+%     8000, 8000, 8000, 9000, 9000, 9000, 9000, 10000, 10000, 10000,...
+%     10000];
+N = 4000*eta; 
+for i=1:20
+   N(i) = 1000;
+end
+% Number of particles
+M = [40, 100, 400, 4000, 10000]; 
+m = length(M);
+% Sizes of cell
+L = [3.1, 5, 10, 31.6, 50]; 
+
+% Fixed parameters
+r=1;
+S=100;
+v=0.03;
 % Initialization of order parameter
 va = zeros(m,x);
+% Errorbar initialized in zero
+err = va;
 %% 
-figure(1)
-for i=1:m
+for i=1:1
    display(['N=',num2str(M(i))])
     for j=1:x
-        % Computes the average va for each value of noise
+        display([num2str(j),'%'])
+        % Computes the average va for each value of noise and stdev
         vt=0;
-        for k=1:N
-            vt = vt + viscek(M(i),L(i),eta(j),r,T,S,v);
+        et=0;
+        for k=1:N(j)
+            V = viscek(M(i),L(i),eta(j),r,S,v);
+            vt = vt + V;
+            et = et + V^2;
         end
-        va(i,j) = vt/N;
+        va(i,j) = vt/N(j);
+        err(i,j) = sqrt( et/N(j) - va(i,j)^2 );
+        toc
     end
-    plot(eta,va(i,:));
-    hold on
 end
-save('promN.mat','va');
+save('var_N.mat','va','eta','err');
         
 
 
