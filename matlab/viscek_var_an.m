@@ -8,12 +8,15 @@ function [va] = viscek_var_an( N, L, eta, r, T_steps, v, phi)
 
 delta_T=1; % Timestep
 %%%%%%%%%%%%%%%%%%%%%%%%%% Initialization %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Positions for ALL times are initialized randomly and modified in time ev.
+% Rows = timesteps
+% Columns = particles
 % Seed the random generation with time
 rng('shuffle')
-
-% Positions for ALL times are initialized randomly and modified in time ev.
 x=L*rand(T_steps,N); % Matrix of x positions for all times
+rng('shuffle')
 y=L*rand(T_steps,N); % Matrix of y positions for all times
+rng('shuffle')
 an=2*pi*rand(T_steps,N); % Matrix of angles for all times
 
 %%%%%%%%%%%%%%%%%%%%%%%% Time evolution %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -29,51 +32,62 @@ for i=2:T_steps
         sum_sin=0;
         sum_cos=0;
         % Determines first neighbourgs
+        cont = 0;
         for k=1:N 
-            % X distance between particles (j as zero)
+            % X distance between particles k and j (j as zero)
             x_v = x(i-1,k) - x(i-1,j);
-            % Y distance between particles (j as zero)
-            y_v = y(i-1,k) - y(i-1,j); 
-            % Euclidean distance
-            dist_eu = sqrt( x_v^2 + y_v^2 );
-            % Distance with periodic boundary conditions
-            dist_per = sqrt( (L - abs(x_v) )^2 + (L - abs(y_v) )^2);
-            
-            if (dist_eu < r || dist_per < r) % Radial neighbourgs
-                % Determines angles of radial neighbourgs
-                Th = 0;
-                if (x_v < 0)
-                    Th = atan(y_v/x_v) + pi;
-                elseif (x_v > 0)
-                    Th = atan(y_v/x_v);
+            % If periodic distance is shorter:
+            if (L-abs(x_v) < abs(x_v))
+                if (x_v > 0)
+                    x_v = -(L-x_v);
+                else
+                    x_v = L-abs(x_v);
                 end
+            end
+            % Y distance between particles k and j (j as zero)
+            y_v = y(i-1,k) - y(i-1,j); 
+            % If periodic distance is shorter:
+            if (L-abs(y_v) < abs(y_v))
+                if (y_v > 0)
+                    y_v = -(L-y_v);
+                else
+                    y_v = L-abs(y_v);
+                end
+            end
+            % Euclidean distance
+            dist = sqrt( x_v^2 + y_v^2 );
+            if (dist < r) % Radial neighbourgs
+                % Determines angles of radial neighbourgs
+                Th = atan2(y_v,x_v);
                 % Corrects minus sign
                 if Th <0
                     Th = Th + 2*pi;
                 end
-                % internal angle between velocity of j and position of k
+                % Internal angle between velocity of j and position of k
                 in = abs(an(i-1,k)-Th);
-                % external angle between velocity of j and position of k
+                % External angle between velocity of j and position of k
                 out = -in + 2*pi;
                 % If any is in range, is angular neighbourg
                 if (in < phi || out < phi)
                     sum_sin = sum_sin + sin(an(i-1,k));
                     sum_cos = sum_cos + cos(an(i-1,k));
+                    cont = cont +1;
                 end 
             end
         end
         %-------- Corrects the arctan problem and adds noise -------------%
         % In case there is no neighbourg
-        an(i,j) = an(i-1,j) + eta*rand-0.5*eta; 
-        if (sum_cos < 0)
-            an(i,j) = atan(sum_sin/sum_cos) + pi + eta*rand-0.5*eta;
-        elseif (sum_cos > 0)
-            an(i,j) = atan(sum_sin/sum_cos) + eta*rand-0.5*eta;
+        if cont == 0
+            A = an(i-1,j) + eta*rand-0.5*eta; 
+        else
+            A = atan2(sum_sin,sum_cos) + eta*rand-0.5*eta;
         end
-        % Corrects the minus sign
-        if an(i,j)<0
-            an(i,j)= an(i,j) +2*pi;
+        % Only positive angles
+        if A < 0
+            A = A + 2*pi;
         end
+        % Boundary Conditions
+        an(i,j) = abs(A - 2*pi*floor(A/(2*pi)));
         %-----------------------------------------------------------------%
     end
 end

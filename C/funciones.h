@@ -1,7 +1,7 @@
 #ifndef FUNCIONES
 #define FUNCIONES
 
-#define STEPS 49 //Number of timesteps (minus one due to init) for temporal evolution
+#define STEPS 99 //Number of timesteps (minus one due to init) for temporal evolution
 
 /************************* FUNCTION PROTOTYPES ************************************/
 void initial(double x[], double y[], double angle[], int N, double L);

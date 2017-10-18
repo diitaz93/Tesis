@@ -8,12 +8,15 @@ function [va] = viscek( N, L, eta, r, T_steps, v)
 
 delta_T=1; % Timestep
 %%%%%%%%%%%%%%%%%%%%%%%%%% Initialization %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Positions for ALL times are initialized randomly and modified in time ev.
+% Rows = timesteps
+% Columns = particles
 % Seed the random generation with time
 rng('shuffle')
-
-% Positions for ALL times are initialized randomly and modified in time ev.
 x=L*rand(T_steps,N); % Matrix of x positions for all times
+rng('shuffle')
 y=L*rand(T_steps,N); % Matrix of y positions for all times
+rng('shuffle')
 an=2*pi*rand(T_steps,N); % Matrix of angles for all times
 
 %%%%%%%%%%%%%%%%%%%%%%%% Time evolution %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -29,39 +32,45 @@ for i=2:T_steps
         sum_sin=0;
         sum_cos=0;
         % Determines first neighbourgs
+        cont = 0;
         for k=1:N
+            % X distance between particles k and j (j as zero)
+            x_v = abs(x(i-1,k) - x(i-1,j));
+            % Y distance between particles k and j (j as zero)
+            y_v = abs(y(i-1,k) - y(i-1,j));
+            % Find the lowest distance considering PBC
+            x_v = min(x_v,L-x_v);
+            y_v = min(y_v,L-y_v);
             % Euclidean distance
-            dist_eu = sqrt( (x(i-1,j)-x(i-1,k))^2 + (y(i-1,j)-y(i-1,k))^2 );
-            % Distance with periodic boundary conditions
-            dist_per = sqrt( (L - abs(x(i-1,j)-x(i-1,k)) )^2 +...
-                (L - abs(y(i-1,j)-y(i-1,k)) )^2);
-            if (dist_eu < r || dist_per < r)
+            dist = sqrt( x_v^2 + y_v^2 );
+            % Decide if is neighbourg
+            if (dist < r)
+                % Sum x and y components
                 sum_sin = sum_sin + sin(an(i-1,k));
                 sum_cos = sum_cos + cos(an(i-1,k));
+                cont = cont +1;
             end
         end
         %-------- Corrects the arctan problem and adds noise -------------%
         % In case there is no neighbourg
-        an(i,j) = an(i-1,j) + eta*rand-0.5*eta; 
-        if (sum_cos < 0)
-            an(i,j) = atan(sum_sin/sum_cos) + pi + eta*rand-0.5*eta;
-        elseif (sum_cos > 0)
-            an(i,j) = atan(sum_sin/sum_cos) + eta*rand-0-5*eta;
+        if cont == 0
+            A = an(i-1,j) + eta*rand-0.5*eta; 
+        else
+            A = atan2(sum_sin,sum_cos) + eta*rand-0.5*eta;
         end
-        % Corrects the minus sign
-        if an(i,j)<0
-            an(i,j)= an(i,j) +2*pi;
+        % Only positive angles
+        if A < 0
+            A = A + 2*pi;
         end
+        % Boundary Conditions
+        an(i,j) = abs(A - 2*pi*floor(A/(2*pi)));
         %-----------------------------------------------------------------%
     end
 end
-%save('data1.mat','x','y','an')
 
 %%%%%%%%%%%%%% Calculation of order parameter %%%%%%%%%%%%%%%%%%%%%%%%%%%
 vx=sum(cos(an(end,:))); % Sum of velocities in x
 vy=sum(sin(an(end,:))); % Sum of velocities in y
 va= sqrt(vx^2 + vy^2)/N; % Average norm of velocity
 
-
 end
-
