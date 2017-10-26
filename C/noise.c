@@ -48,7 +48,7 @@ int main()
   double et; // Temporal stdev
   double V; // Temporal variable
   // Iteration over N values
-  for (i=2;i<3;i++)
+  for (i=0;i<1;i++)
     {
       // Iteration over noise values
       for (j=0;j<ETAS;j++)
@@ -69,21 +69,6 @@ int main()
 	  //printf("%d%%\n",j);
 	}
     }
-  
-  /*------------------------- Print data ---------------------------*/
-  // Prints each row of va followerd by eta each time
-  /*for(i=0;i<1;i++)
-    {
-      for(j=0;j<ETAS;j++)
-	{
-	  printf("%.4f\t",va[i][j]);
-	}
-      printf("\n");
-      for(k=0;k<ETAS;k++)
-	{
-	  printf("%.4f\t",eta[k]);
-	}
-     }*/
   
   /*----- Return ------*/
   printf("\a"); // Bell

@@ -42,15 +42,17 @@ void screenshot(double x[], double y[], double angle[], int N)
   printf("\n");
 }
 
-//UPDATES THE ANGLE OF VELOCITY
-void new_angle(double x[], double y[], double angle[], int N, double r, double eta, double L)
+//UPDATES THE POSITION AND ANGLE OF VELOCITY
+void update(double x[], double y[], double angle[], int N, double r, double eta, double L, double v)
 {
   int i, j;// indexes
-  double sum_sin, sum_cos;
+  int cont; // counter
+  double xt, yt, x_v, y_v; // Temporal position variables
+  double sum_sin, sum_cos; // Sum of sines and cosines
   double at; // Temporal variable
-  double dist_eu, dist_per;
+  double dist; // Euclidean distance
 
-  // Makes copy of array
+  // Makes copy of array to make availiable the past angles
   double copy[N];
   for (i=0;i<=N-1;i++)
     {
@@ -60,48 +62,168 @@ void new_angle(double x[], double y[], double angle[], int N, double r, double e
   // Update
   for(i=0;i<=N-1;i++)
     {
-      sum_sin = 0;//sum of sines of neighbourgs
-      sum_cos = 0;//sum of cosines of neighbourgs
+        /************ Position Update ******************/
+        // New coordinate is old coordinate plus velocity times time
+        xt = x[i] + v*cos(copy[i]);
+        yt = y[i] + v*sin(copy[i]);
 
-      for(j=0;j<=N-1;j++)// Comparison
-	{
-	  // Compares euclidean distance
-	  dist_eu = sqrt( pow( (x[i]-x[j]), 2) + pow( (y[i]-y[j]), 2));
-	  dist_per = sqrt ( pow( (L-fabs(x[i]-x[j])) ,2) + pow( (L-fabs(y[i]-y[j])) ,2));
-			  
-	  if ( dist_eu < r || dist_per < r )
-	    {
-	      // If neighbourg, sum sines and cosines of angle
-	      sum_sin += sin(copy[j]);
-	      sum_cos += cos(copy[j]);
-	    }// end if
-	}// end comparison
+        // Periodic boundary conditions
+        x[i] = fabs( xt - L*floor( xt/L ) );
+        y[i] = fabs( yt - L*floor( yt/L ) );
+        /*************** Angle Update *****************/
+        sum_sin = 0;//sum of sines of neighbourgs
+        sum_cos = 0;//sum of cosines of neighbourgs
+        cont = 0; // initializa counter in zero
+        for(j=0;j<=N-1;j++)// Comparison
+            {
+              // X distance between particles j and i (j=0)
+              x_v = fabs(x[j]-x[i]);
+              // Y distance between particles j and i (j=0)
+              y_v = fabs(y[j]-y[i]);
+              // Find the lowest distance conseidering PBC
+              x_v = fmin(x_v,L-xt);
+              y_v = fmin(y_v,L-yt);
 
-      at = atan( sum_sin/sum_cos );//new angle calculation
-      // values between 0 and 2pi, fix arctan error (EFICIENCY ALERT!!)
-      (sum_cos < 0) ? (angle[i] = at + M_PI) : (angle[i] = at);
-      angle[i] += (double)rand()*eta/(double)RAND_MAX - 0.5*eta; //Noise added
-      (angle[i] < 0) ? (angle[i] += 2*M_PI) : (angle[i] = angle[i]);
-    }// end update
-}// end new_angle
+              // Compares euclidean distance
+              dist = sqrt( pow(x_v, 2) + pow(y_v, 2));
+              if ( dist < r )
+                {
+                  // If neighbourg, sum sines and cosines of angle
+                  sum_sin += sin(copy[j]);
+                  sum_cos += cos(copy[j]);
+                  cont ++;
+                }// end if
+            }// end comparison
+	/************* Arctan problem and noise ******************/
+	// If there are no neighbourgs
+	if (cont==0)
+	  {
+	    at = copy[i] + (double)rand()*eta/(double)RAND_MAX - 0.5*eta;
+	  }
+	else
+	  {
+	    at = atan2(sum_sin,sum_cos) + (double)rand()*eta/(double)RAND_MAX - 0.5*eta;
+	  }
+	// Only positive angles
+	if (at < 0)
+	  {
+	    at += 2*M_PI;
+	  }
+	// Boundary Connditions
+	angle[i] = fabs(at - 2*M_PI*floor(at/2*M_PI));
 
-// UPDATES POSITIONS
-void new_coord(double x[], double y[], double angle[], int N, double v, double L)
+    }// end arctan
+}// end update
+
+
+//UPDATES THE POSITION AND ANGLE OF VELOCITY WITH ANGLE RESTRICTION
+void var_an(double x[], double y[], double angle[], int N, double r, double eta, double L, double v, double phi)
 {
-  int i; // index
-  double xt, yt; // Temporal variables
+  int i, j;// indexes
+  int cont; // counter
+  double xt, yt, x_v, y_v; // Temporal position variables
+  double sum_sin, sum_cos; // Sum of sines and cosines
+  double at, Th; // Temporal variable
+  double dist;// Euclidean distance
+  double in, out; // Inner and outer angles
+
+  // Makes copy of array to make availiable the past angles
+  double copy[N];
+  for (i=0;i<=N-1;i++)
+    {
+      copy[i] = angle[i];
+    }
+
+  // Update
   for(i=0;i<=N-1;i++)
     {
-      // New coordinate is old coordinate plus velocity times time
-      xt = x[i] + v*cos(angle[i]);
-      yt = y[i] + v*sin(angle[i]);
+        /************ Position Update ******************/
+        // New coordinate is old coordinate plus velocity times time
+        xt = x[i] + v*cos(copy[i]);
+        yt = y[i] + v*sin(copy[i]);
 
-      // Periodic boundary conditions
-      x[i] = fabs( xt - L*floor( xt/L ) );
-      y[i] = fabs( yt - L*floor( yt/L ) );
+        // Periodic boundary conditions
+        x[i] = fabs( xt - L*floor( xt/L ) );
+        y[i] = fabs( yt - L*floor( yt/L ) );
+        /*************** Angle Update *****************/
+        sum_sin = 0;//sum of sines of neighbourgs
+        sum_cos = 0;//sum of cosines of neighbourgs
+        cont = 0; // initializa counter in zero
+        for(j=0;j<=N-1;j++)// Comparison
+            {
+              // X distance between particles j and i (j=0)
+              x_v = x[j]-x[i];
+              // If periodic distance is shorter
+              if (L-fabs(x_v) < fabs(x_v))
+              {
+                if (x_v > 0)
+                {
+                    x_v = -(L-x_v);
+                }
+                else
+                {
+                    x_v = L - fabs(x_v);
+                }
+              }
+              // Y distance between particles j and i (j=0)
+              y_v = y[j]-y[i];
+               // If periodic distance is shorter
+              if (L-fabs(y_v) < fabs(y_v))
+              {
+                if (y_v > 0)
+                {
+                    y_v = -(L-y_v);
+                }
+                else
+                {
+                    y_v = L - fabs(y_v);
+                }
+              }
+              // Euclidean distance
+              dist = sqrt (pow(x_v,2) + pow(y_v,2));
+              if (dist < r) // Radial neighbourgs
+              {
+                Th = atan2(y_v,x_v); // Determines angles of radial neighbourgs
+                // Correct minus sign
+                if (Th < 0)
+                {
+                    Th += 2*M_PI;
+                }
+                // Internal angle between velocity of i and position of j
+                in = fabs(copy[j]-Th);
+                // External angle between velocity of i and position of j
+                out = -in+2*M_PI;
+                // If any is in range, is angular neighbourg
+                if (in < phi || out < phi)
+                {
+                    // If neighbourg, sum sines and cosines of angle
+                    sum_sin += sin(copy[j]);
+                    sum_cos += cos(copy[j]);
+                    cont ++;
+                }//end angular neighbourgs
+              }//end radial neighbourgs
+            }// end comparison
+	/************* Arctan problem and noise ******************/
+	// If there are no neighbourgs
+	if (cont==0)
+	  {
+	    at = copy[i] + (double)rand()*eta/(double)RAND_MAX - 0.5*eta;
+	  }
+	else
+	  {
+	    at = atan2(sum_sin,sum_cos) + (double)rand()*eta/(double)RAND_MAX - 0.5*eta;
+	  }
+	// Only positive angles
+	if (at < 0)
+	  {
+	    at += 2*M_PI;
+	  }
+	// Boundary Connditions
+	angle[i] = fabs(at - 2*M_PI*floor(at/2*M_PI));
 
-    } // end update
-} // end new_coord
+    }// end arctan
+}// end update
+
 
 // CALCULATES ORDER PARAMETER
 double v_a(int N, double angle[])

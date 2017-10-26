@@ -3,9 +3,12 @@
 #include <math.h>
 #include <time.h>
 
+#include "funciones.h"
+#include "viscek.h"
+
 int main()
 {
-  system("echo hello world");
-    printf("Hello world");
+  double va = viscek(200,5,1,0.1);
+  printf("%.4f",va);
   return 0;
 }

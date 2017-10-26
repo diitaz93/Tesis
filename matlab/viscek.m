@@ -35,9 +35,9 @@ for i=2:T_steps
         cont = 0;
         for k=1:N
             % X distance between particles k and j (j as zero)
-            x_v = abs(x(i-1,k) - x(i-1,j));
+            x_v = abs(x(i,k) - x(i,j));
             % Y distance between particles k and j (j as zero)
-            y_v = abs(y(i-1,k) - y(i-1,j));
+            y_v = abs(y(i,k) - y(i,j));
             % Find the lowest distance considering PBC
             x_v = min(x_v,L-x_v);
             y_v = min(y_v,L-y_v);

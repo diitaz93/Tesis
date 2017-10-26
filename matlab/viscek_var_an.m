@@ -35,7 +35,7 @@ for i=2:T_steps
         cont = 0;
         for k=1:N 
             % X distance between particles k and j (j as zero)
-            x_v = x(i-1,k) - x(i-1,j);
+            x_v = x(i,k) - x(i,j);
             % If periodic distance is shorter:
             if (L-abs(x_v) < abs(x_v))
                 if (x_v > 0)
@@ -45,7 +45,7 @@ for i=2:T_steps
                 end
             end
             % Y distance between particles k and j (j as zero)
-            y_v = y(i-1,k) - y(i-1,j); 
+            y_v = y(i,k) - y(i,j); 
             % If periodic distance is shorter:
             if (L-abs(y_v) < abs(y_v))
                 if (y_v > 0)
