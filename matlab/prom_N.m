@@ -32,7 +32,7 @@ va = zeros(m,x);
 % Errorbar initialized in zero
 err = va;
 %% 
-for i=1:1
+for i=2:2
    display(['N=',num2str(M(i))])
     for j=1:x
         display([num2str(j),'%'])
